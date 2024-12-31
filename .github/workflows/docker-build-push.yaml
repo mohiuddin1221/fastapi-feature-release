@@ -1,0 +1,29 @@
+name: Build And Push Docker Image In ACR
+
+on:
+  push:
+   brances:
+    - main
+
+jobs:
+  builds:
+    runs-on: ubuntu-latest
+
+    steps:
+      -name: Checkout code
+       uses: actions/checkout@v2
+
+      -name: Build Docker Image For FastAPI
+       run: |
+        docker build -t '${{secrets.DOCKER_USERNAME}}'/imagename:'${{github.sha}}'
+
+      -name: LogIn to AZURE Container Registray
+       uses: azure/docker-login@v1
+       with:
+        login-server: ${{ secrets.ACR_REGISTRY_NAME }}.azurecr.io
+        username: ${{ secrets.AZURE_USERNAME }}
+        password: ${{ secrets.AZURE_PASSWORD }}
+
+      -name: Push To Docker Image In ACR
+       run: |
+        docker.push ${{secrets.ACR_REGISTRY_NAME}}.azurecr.io/${{ secrets.ACR_REPOSITORY_NAME }}:${{ github.sha }}
